@@ -158,6 +158,72 @@
 		</Setter>
 	</Style>
 
+	<DrawingBrush x:Key="CheckerboardBrush" options:Freeze="True" ViewportUnits="Absolute" Viewport="0,0,20,20" Stretch="Uniform" TileMode="Tile">
+		<DrawingBrush.Drawing>
+			<DrawingGroup>
+				<DrawingGroup.Children>
+					<DrawingCollection>
+						<GeometryDrawing Brush="White">
+							<GeometryDrawing.Geometry>
+								<RectangleGeometry Rect="0 0 20 20" />
+							</GeometryDrawing.Geometry>
+						</GeometryDrawing>
+						<GeometryDrawing Brush="LightGray">
+							<GeometryDrawing.Geometry>
+								<RectangleGeometry Rect="0 0 10 10" />
+							</GeometryDrawing.Geometry>
+						</GeometryDrawing>
+						<GeometryDrawing Brush="LightGray">
+							<GeometryDrawing.Geometry>
+								<RectangleGeometry Rect="10 10 10 10" />
+							</GeometryDrawing.Geometry>
+						</GeometryDrawing>
+					</DrawingCollection>
+				</DrawingGroup.Children>
+			</DrawingGroup>
+		</DrawingBrush.Drawing>
+	</DrawingBrush>
+
+	<LinearGradientBrush x:Key="VerticalRainbowBrush" options:Freeze="True" StartPoint="1,0">
+		<GradientStop Offset="0" Color="#FFFF0000" />
+		<GradientStop Offset="0.167" Color="#FFFFFF00" />
+		<GradientStop Offset="0.333" Color="#FF00FF00" />
+		<GradientStop Offset="0.500" Color="#FF00FFFF" />
+		<GradientStop Offset="0.667" Color="#FF0000FF" />
+		<GradientStop Offset="0.833" Color="#FFFF00FF" />
+		<GradientStop Offset="1" Color="#FFFF0000" />
+	</LinearGradientBrush>
+
+	<Style TargetType="local:BrushControl">
+		<Setter Property="Template">
+			<Setter.Value>
+				<ControlTemplate TargetType="local:BrushControl">
+					<Grid Height="155">
+						
+					</Grid>
+				</ControlTemplate>
+			</Setter.Value>
+		</Setter>
+	</Style>
+
+	<local:BrushConverter x:Key="BrushConverter" />
+	<Style TargetType="local:BrushEditorControl">
+		<Setter Property="Brush" Value="{Binding Value,Mode=TwoWay}" />
+		<Setter Property="Template">
+			<Setter.Value>
+				<ControlTemplate TargetType="local:BrushEditorControl">
+					<Button>
+						<Grid>
+							<Rectangle Fill="{StaticResource CheckerboardBrush}" />
+							<Rectangle Fill="{TemplateBinding Brush,Converter={StaticResource BrushConverter}}" />
+							<TextBlock Visibility="Collapsed" />
+						</Grid>
+					</Button>
+				</ControlTemplate>
+			</Setter.Value>
+		</Setter>
+	</Style>
+
 	<PathGeometry x:Key="RightThicknessGeometry" options:Freeze="True" Figures="M3,8 L7,8 7,5.5 11,9.5 7,13.5 7,11 3,11 z" />
 	<PathGeometry x:Key="TopThicknessGeometry" options:Freeze="True" Figures="M7.5,5 L11.5,9 9,9 9,13 6,13 6,9 3.5,9 z" />
 	<PathGeometry x:Key="LeftThicknessGeometry" options:Freeze="True" Figures="M11,8 L7,8 7,5.5 3,9.5 7,13.5 7,11 11,11 z" />

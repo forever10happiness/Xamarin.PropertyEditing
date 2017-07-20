@@ -103,7 +103,9 @@ namespace Xamarin.PropertyEditing.Windows
 			{ typeof(PropertyViewModel<Point>), typeof(PointEditorControl) },
 			{ typeof(PropertyViewModel<Size>), typeof(SizeEditorControl) },
 			{ typeof(PropertyViewModel<Thickness>), typeof(ThicknessEditorControl) },
-			{ typeof(PredefinedValuesViewModel<>), typeof(EnumEditorControl) }
+			{ typeof(PredefinedValuesViewModel<>), typeof(EnumEditorControl) },
+			{ typeof(BrushPropertyViewModel), typeof(BrushEditorControl) },
+
 		};
 	}
 }
