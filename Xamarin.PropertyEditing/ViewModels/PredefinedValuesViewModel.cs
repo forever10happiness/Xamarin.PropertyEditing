@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Cadenza.Collections;
 using Xamarin.PropertyEditing.Resources;
 
 namespace Xamarin.PropertyEditing.ViewModels
@@ -16,12 +15,19 @@ namespace Xamarin.PropertyEditing.ViewModels
 			if (this.predefinedValues == null)
 				throw new ArgumentException (nameof(property) + " did not have predefined values", nameof(property));
 
-			UpdateValueName();
+			UpdatePossibleValues ();
+			UpdateValueName ();
 		}
 
-		public IEnumerable<string> PossibleValues
+		public bool IsCombinable
 		{
-			get { return this.predefinedValues.PredefinedValues.Keys; }
+			get { return this.predefinedValues.IsValueCombinable; }
+		}
+
+		IReadOnlyDictionary<string, TValue> possibleValues;
+		public IReadOnlyDictionary<string, TValue> PossibleValues
+		{
+			get { return possibleValues; }
 		}
 
 		public string ValueName
@@ -64,7 +70,8 @@ namespace Xamarin.PropertyEditing.ViewModels
 			if (this.predefinedValues == null)
 				return;
 
-			UpdateValueName();
+			UpdatePossibleValues ();
+			UpdateValueName ();
 		}
 
 		private string valueName;
@@ -96,6 +103,11 @@ namespace Xamarin.PropertyEditing.ViewModels
 				this.valueName = newValueName;
 				OnPropertyChanged (nameof(ValueName));
 			}
+		}
+
+		void UpdatePossibleValues ()
+		{
+			possibleValues = this.predefinedValues.PredefinedValues.ToDictionary (x => x.Key, y => y.Value);
 		}
 	}
 }

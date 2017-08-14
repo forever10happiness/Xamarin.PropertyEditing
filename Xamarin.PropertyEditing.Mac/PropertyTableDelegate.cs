@@ -66,19 +66,20 @@ namespace Xamarin.PropertyEditing.Mac
 
 					var editor = (PropertyEditorControl)outlineView.MakeView (cellIdentifier + "edits", this);
 					if (editor == null) {
-						editor = GetEditor (vm, outlineView);
+						editor = GetEditor (vm, outlineView, facade);
 					}
 
-					// we must reset these every time, as the view may have been reused
-					editor.ViewModel = vm;
-					editor.TableRow = outlineView.RowForItem (item);
+					// Force a row update due to new height, but only when we are non-default
+					if (editor.TriggerRowChange)
+						outlineView.NoteHeightOfRowsWithIndexesChanged (new NSIndexSet (editor.TableRow));
+
 					return editor;
 			}
 
 			throw new Exception ("Unknown column identifier: " + tableColumn.Identifier);
 		}
 
-		PropertyEditorControl GetEditor (EditorViewModel vm, NSOutlineView outlineView)
+		PropertyEditorControl GetEditor (PropertyViewModel vm, NSOutlineView outlineView, NSObjectFacade item)
 		{
 			Type[] genericArgs = null;
 			Type controlType;
@@ -98,7 +99,13 @@ namespace Xamarin.PropertyEditing.Mac
 				controlType = controlType.MakeGenericType (genericArgs);
 			}
 
-			return SetUpEditor (controlType, vm, outlineView);
+			var editor = SetUpEditor (controlType, vm, outlineView);
+
+			// we must reset these every time, as the view may have been reused
+			editor.TableRow = outlineView.RowForItem (item);
+			editor.ViewModel = vm;
+
+			return editor;
 		}
 
 		public override bool ShouldSelectItem (NSOutlineView outlineView, NSObject item)
@@ -136,10 +143,10 @@ namespace Xamarin.PropertyEditing.Mac
 				return 30;
 			}
 
-			var vm = (EditorViewModel)facade.Target;
+			var vm = facade.Target as PropertyViewModel;
 			var editor = (PropertyEditorControl)outlineView.MakeView (vm.GetType ().Name + "edits", this);
 			if (editor == null) {
-				editor = GetEditor (vm, outlineView);
+				editor = GetEditor (vm, outlineView, facade);
 			}
 			return editor.RowHeight;
 		}
@@ -164,13 +171,13 @@ namespace Xamarin.PropertyEditing.Mac
 			{typeof (PropertyViewModel<bool>), typeof (BooleanEditorControl)},
 			{typeof (PropertyViewModel<CoreGraphics.CGPoint>), typeof (CGPointEditorControl)},
 			{typeof (PropertyViewModel<CoreGraphics.CGRect>), typeof (CGRectEditorControl)},
-			{typeof (PredefinedValuesViewModel<>), typeof(PredefinedValuesEditor<>)},
 			{typeof (PropertyViewModel<CoreGraphics.CGSize>), typeof (CGSizeEditorControl)},
 			{typeof (PropertyViewModel<Point>), typeof (SystemPointEditorControl)},
 			{typeof (PointPropertyViewModel), typeof (CommonPointEditorControl) },
 			{typeof (PropertyViewModel<Size>), typeof (SystemSizeEditorControl)},
 			{typeof (SizePropertyViewModel), typeof (CommonSizeEditorControl) },
-			{typeof (PropertyViewModel<Rectangle>), typeof (RectangleEditorControl)}
+			{typeof (PropertyViewModel<Rectangle>), typeof (RectangleEditorControl)},
+			{typeof (PredefinedValuesViewModel<>), typeof(PredefinedValuesEditor<>)},
 		};
 	}
 }
