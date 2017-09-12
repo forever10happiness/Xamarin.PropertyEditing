@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Xamarin.PropertyEditing.Resources;
+using System.Threading.Tasks;
 
 namespace Xamarin.PropertyEditing.ViewModels
 {
@@ -53,11 +54,12 @@ namespace Xamarin.PropertyEditing.ViewModels
 			}
 		}
 
-		List<string> valueList = new List<string> ();
-		public List<string> ValueList
-		{
+		List<string> valueList = null;
+		public List<string> ValueList {
 			get { return this.valueList; }
 			set {
+				if (this.valueList == value)
+					return;
 				SetValueFromList (value);
 			}
 		}
@@ -130,16 +132,14 @@ namespace Xamarin.PropertyEditing.ViewModels
 			}
 		}
 
-		async void UpdateValueList ()
+		async Task UpdateValueList ()
 		{
 			var values = await GetValues ();
 			if (values != null) {
 				valueList.Clear ();
 				var range = this.predefinedValues.PredefinedValues.Where (x => values.Contains (x.Value)).Select (y => y.Key);
-				if (range != null) {
-					valueList.AddRange (range);
-					OnPropertyChanged (nameof (ValueList));
-				}
+				valueList.AddRange (range);
+				OnPropertyChanged (nameof (ValueList));
 			}
 		}
 	}
