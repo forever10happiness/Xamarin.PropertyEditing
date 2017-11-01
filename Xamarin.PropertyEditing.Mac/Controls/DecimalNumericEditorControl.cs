@@ -8,9 +8,13 @@ namespace Xamarin.PropertyEditing.Mac
 	{
 		public DecimalNumericEditorControl ()
 		{
-			NumberStyle = NSNumberFormatterStyle.Decimal;
-			Formatter.UsesGroupingSeparator = false;
-			Formatter.MaximumFractionDigits = 15;
+			Formatter = new NSNumberFormatter {
+				FormatterBehavior = NSNumberFormatterBehavior.Version_10_4,
+				Locale = NSLocale.CurrentLocale,
+				MaximumFractionDigits = 15,
+				NumberStyle = NSNumberFormatterStyle.Decimal,
+				UsesGroupingSeparator = false,
+			};
 
 			// update the VM value
 			NumericEditor.ValueChanged += (sender, e) => {

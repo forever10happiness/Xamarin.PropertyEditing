@@ -58,5 +58,11 @@ namespace Xamarin.PropertyEditing.Resources {
                 return ResourceManager.GetString("InvalidValue", resourceCulture);
             }
         }
+        
+        internal static string InvalidRatio {
+            get {
+                return ResourceManager.GetString("InvalidRatio", resourceCulture);
+            }
+        }
     }
 }

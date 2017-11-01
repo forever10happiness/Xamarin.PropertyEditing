@@ -100,7 +100,7 @@ namespace Xamarin.PropertyEditing
 		{
 			double value;
 			//Checks parsing to number
-			if (!double.TryParse (finalString, out value))
+			if (!double.TryParse (finalString, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.CurrentUICulture, out value))
 				return false;
 			//Checks if needs to be possitive value
 			if (!allowNegativeValues && value < 0)
@@ -166,6 +166,16 @@ namespace Xamarin.PropertyEditing
 				}
 			}
 			return false;
+		}
+
+		public static string[] GetRatioParts (string finalString)
+		{
+			return finalString.Split (new[] { GetSeparator (finalString) });
+		}
+
+		public static double ParseDoubleValue (string finalString)
+		{
+			return double.Parse (finalString, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.CurrentUICulture);
 		}
 
 		public static bool CheckIfNumber (string finalString, ValidationType mode, bool allowNegativeValues)

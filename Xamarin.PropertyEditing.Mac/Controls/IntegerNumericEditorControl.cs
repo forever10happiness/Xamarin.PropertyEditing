@@ -9,7 +9,13 @@ namespace Xamarin.PropertyEditing.Mac
 	{
 		public IntegerNumericEditorControl ()
 		{
-			NumberStyle = NSNumberFormatterStyle.None;
+			Formatter = new NSNumberFormatter {
+				FormatterBehavior = NSNumberFormatterBehavior.Version_10_4,
+				Locale = NSLocale.CurrentLocale,
+				MaximumFractionDigits = 0,
+				NumberStyle = NSNumberFormatterStyle.None,
+				UsesGroupingSeparator = false,
+			};
 
 			// update the VM value
 			NumericEditor.ValueChanged += (sender, e) => {

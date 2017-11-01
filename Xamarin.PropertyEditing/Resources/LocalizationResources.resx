@@ -20,4 +20,8 @@
 		<value>{0} is an Invalid Value</value>
 		<comment>The ValueName being set does not exist in the list</comment>
 	</data>
+    <data name="InvalidRatio" xml:space="preserve">
+        <value>{0} is an Invalid Ratio</value>
+        <comment>The ratio being is not in the correct format.</comment>
+    </data>
 </root>

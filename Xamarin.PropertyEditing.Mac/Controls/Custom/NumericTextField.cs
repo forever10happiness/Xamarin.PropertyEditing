@@ -39,10 +39,10 @@ namespace Xamarin.PropertyEditing.Mac
 			Delegate = keyUpDownDelegate;
 		}
 
-		public override bool ShouldBeginEditing (NSText fieldEditor)
+		public override bool ShouldBeginEditing (NSText textObject)
 		{
-			CachedCurrentEditor = fieldEditor;
-			cachedValueString = fieldEditor.Value;
+			CachedCurrentEditor = textObject;
+			cachedValueString = textObject.Value;
 
 			if (AllowRatios)
 				CachedCurrentEditor.Delegate = new RatioValidateDelegate (this);
@@ -54,25 +54,17 @@ namespace Xamarin.PropertyEditing.Mac
 
 		protected virtual void OnKeyArrowUp ()
 		{
-			var handler = KeyArrowUp;
-			if (handler != null) {
-				handler (this, EventArgs.Empty);
-			}
+			KeyArrowUp?.Invoke (this, EventArgs.Empty);
 		}
 
 		protected virtual void OnKeyArrowDown ()
 		{
-			var handler = KeyArrowDown;
-			if (handler != null) {
-				handler (this, EventArgs.Empty);
-			}
+			KeyArrowDown?.Invoke (this, EventArgs.Empty);
 		}
 
 		public virtual void RaiseValidatedEditingEnded ()
 		{
-			var handler = ValidatedEditingEnded;
-			if (handler != null)
-				handler (this, EventArgs.Empty);
+			ValidatedEditingEnded?.Invoke (this, EventArgs.Empty);
 		}
 
 		public virtual void ResetInvalidInput ()
@@ -100,23 +92,17 @@ namespace Xamarin.PropertyEditing.Mac
 					return false;
 			}
 
-			return false;
+			return true;
 		}
 
 		protected virtual void OnKeyArrowUp ()
 		{
-			var handler = KeyArrowUp;
-			if (handler != null) {
-				handler (this, EventArgs.Empty);
-			}
+			KeyArrowUp?.Invoke (this, EventArgs.Empty);
 		}
 
 		protected virtual void OnKeyArrowDown ()
 		{
-			var handler = KeyArrowDown;
-			if (handler != null) {
-				handler (this, EventArgs.Empty);
-			}
+			KeyArrowDown?.Invoke (this, EventArgs.Empty);
 		}
 	}
 
@@ -138,7 +124,7 @@ namespace Xamarin.PropertyEditing.Mac
 
 		public override bool TextShouldEndEditing (NSText textObject)
 		{
-			if (!ValidateFinalString (TextField.StringValue)) {
+			if (!ValidateFinalString (textObject.Value)) {
 				TextField.ResetInvalidInput ();
 				AppKitFramework.NSBeep ();
 				return false;

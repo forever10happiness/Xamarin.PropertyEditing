@@ -2,6 +2,7 @@
 using AppKit;
 using CoreGraphics;
 using Foundation;
+using Xamarin.PropertyEditing.Drawing;
 
 namespace Xamarin.PropertyEditing.Mac
 {
@@ -57,7 +58,7 @@ namespace Xamarin.PropertyEditing.Mac
 		}
 
 		public double Value {
-			get { return stepper.DoubleValue; }
+			get { return commonRatio.Numerator; }
 			set { SetValue (value); }
 		}
 
@@ -82,6 +83,7 @@ namespace Xamarin.PropertyEditing.Mac
 			}
 		}
 
+		double cachedStepperValue = 0.0f;
 		public double IncrementValue {
 			get { return stepper.Increment; }
 			set { stepper.Increment = value; }
@@ -116,7 +118,7 @@ namespace Xamarin.PropertyEditing.Mac
 				if (value)
 					numericEditor.StringValue = string.Empty;
 				else
-					numericEditor.DoubleValue = stepper.DoubleValue;
+					numericEditor.DoubleValue = commonRatio.Value;
 			}
 		}
 
@@ -137,14 +139,46 @@ namespace Xamarin.PropertyEditing.Mac
 			}
 		}
 
+		public bool AllowRatios
+		{
+			get {
+				return numericEditor.AllowRatios;
+			}
+			set {
+				numericEditor.AllowRatios = value;
+			}
+		}
+
+		public string StringValue
+		{
+			get { 
+				return numericEditor.StringValue; 
+			}
+			set {
+				numericEditor.StringValue = value;
+			}
+		}
+
 		protected virtual void OnConfigureNumericTextField ()
 		{
 			numericEditor.Formatter = formatter;
 		}
 
+		public bool AllowNegativeValues
+		{
+			get {
+				return numericEditor.AllowNegativeValues;
+			}
+			set {
+				numericEditor.AllowNegativeValues = value;
+			}
+		}
+
 		public virtual void Reset ()
 		{
 		}
+
+		CommonRatio commonRatio = new CommonRatio (0, 1, ':');
 
 		public NumericSpinEditor ()
 		{
@@ -157,24 +191,24 @@ namespace Xamarin.PropertyEditing.Mac
 				ControlSize = controlSize,
 			};
 
-			formatter = new NSNumberFormatter {
-				FormatterBehavior = NSNumberFormatterBehavior.Version_10_4,
-				Locale = NSLocale.CurrentLocale,
-				MaximumFractionDigits = 15,
-				NumberStyle = NSNumberFormatterStyle.Decimal,
-				UsesGroupingSeparator = false,
-			};
-
 			numericEditor = new NumericTextField {
 				Alignment = NSTextAlignment.Right,
-				Formatter = formatter,
 				TranslatesAutoresizingMaskIntoConstraints = false,
 				Font = NSFont.FromFontName (PropertyEditorControl.DefaultFontName, PropertyEditorControl.DefaultFontSize),
 				ControlSize = controlSize,
 			};
 
 			stepper.Activated += (s, e) => {
-				OnStepperActivated (s, e);
+				if (!editing) {
+					editing = true;
+					if (stepper.DoubleValue > cachedStepperValue) {
+						IncrementNumericValue ();
+					} else {
+						DecrementNumericValue ();
+					}
+					ValueChanged?.Invoke (this, EventArgs.Empty);
+					editing = false;
+				}
 			};
 
 			numericEditor.KeyArrowUp += (sender, e) => { IncrementNumericValue (); };
@@ -189,26 +223,10 @@ namespace Xamarin.PropertyEditing.Mac
 
 			this.DoConstraints (new[] {
 				numericEditor.ConstraintTo (this, (n, c) => n.Width == c.Width - 16),
-				numericEditor.ConstraintTo (this, (n, c) => n.Height == 19),
+				numericEditor.ConstraintTo (this, (n, c) => n.Height == PropertyEditorControl.DefaultControlHeight - 3),
 				stepper.ConstraintTo (numericEditor, (s, n) => s.Left == n.Right + 4),
 				stepper.ConstraintTo (numericEditor, (s, n) => s.Top == n.Top),
 			});
-		}
-
-		protected virtual void SetStepperActivated ()
-		{
-			SetValue (stepper.DoubleValue);
-		}
-
-		protected void OnStepperActivated (object sender, EventArgs e)
-		{
-			if (!editing) {
-				editing = true;
-				SetStepperActivated ();
-				if (ValueChanged != null)
-					ValueChanged (this, EventArgs.Empty);
-				editing = false;
-			}
 		}
 
 		protected void OnValueChanged (object sender, EventArgs e)
@@ -216,8 +234,7 @@ namespace Xamarin.PropertyEditing.Mac
 			if (!editing) {
 				editing = true;
 				SetValue (numericEditor.StringValue);
-				if (ValueChanged != null)
-					ValueChanged (this, EventArgs.Empty);
+				ValueChanged?.Invoke (this, EventArgs.Empty);
 				editing = false;
 			}
 		}
@@ -227,19 +244,15 @@ namespace Xamarin.PropertyEditing.Mac
 			if (!editing) {
 				editing = true;
 				SetValue (numericEditor.StringValue);
-				if (EditingEnded != null)
-					EditingEnded (this, EventArgs.Empty);
-				if (ValueChanged != null)
-					ValueChanged (this, EventArgs.Empty);
+				EditingEnded?.Invoke (this, EventArgs.Empty);
+				ValueChanged?.Invoke (this, EventArgs.Empty);
 				editing = false;
 			}
 		}
 
 		void SetValue (string value)
 		{
-			//Regulates maximun and minium out of range
-			stepper.DoubleValue = CoerceValue (FieldValidation.FixInitialValue (value, Value.ToEditorString ()).ToEditorDouble ());
-			numericEditor.StringValue = FieldValidation.RoundDoubleValue (stepper.DoubleValue.ToEditorString (), NumericMode == ValidationType.Decimal ? FieldValidation.DefaultXcodeMaxRoundDigits : 0);
+			numericEditor.StringValue = value;
 		}
 
 		public void SetValue (double value)
@@ -254,14 +267,90 @@ namespace Xamarin.PropertyEditing.Mac
 
 		public void IncrementNumericValue ()
 		{
-			SetValue (stepper.DoubleValue + IncrementValue);
-			OnStepperActivated (stepper, EventArgs.Empty);
+			nint caretLocation = 0;
+			nint selectionLength = 0;
+
+			GetEditorCaretLocationAndLength (out caretLocation, out selectionLength);
+
+			if (AllowRatios) {
+				// Nothing selected, just workout out which value the cursor is to increment
+				if (selectionLength == 0) {
+					if (caretLocation <= GetSeparatorLocation ()) {
+						SetCommonRatio (commonRatio.Numerator + IncrementValue, commonRatio.Denominator, commonRatio.RatioSeparator);
+					} else {
+						SetCommonRatio (commonRatio.Numerator, commonRatio.Denominator + IncrementValue, commonRatio.RatioSeparator);
+					}
+				} else {
+					// Increment both values.
+					SetCommonRatio (commonRatio.Numerator + IncrementValue, commonRatio.Denominator + IncrementValue, commonRatio.RatioSeparator);
+				}
+				SetValue (commonRatio.StringValue);
+			} else {
+				SetCommonRatio (commonRatio.Numerator + IncrementValue, 1, commonRatio.RatioSeparator);
+				SetValue (commonRatio.Numerator);
+			}
+
+			// Resposition our cursor so it doesn't jump around.
+			SetEditorCaretLocationAndLength (caretLocation, selectionLength);
 		}
 
 		public void DecrementNumericValue ()
 		{
-			SetValue (stepper.DoubleValue - IncrementValue);
-			OnStepperActivated (stepper, EventArgs.Empty);
+			nint caretLocation = 0;
+			nint selectionLength = 0;
+
+			GetEditorCaretLocationAndLength (out caretLocation, out selectionLength);
+
+			if (AllowRatios) {
+				// Nothing selected, just workout out which value to increment
+				if (selectionLength == 0) {
+					if (caretLocation <= GetSeparatorLocation ()) {
+						SetCommonRatio (commonRatio.Numerator - IncrementValue, commonRatio.Denominator, commonRatio.RatioSeparator);
+					} else {
+						SetCommonRatio (commonRatio.Numerator, commonRatio.Denominator - IncrementValue, commonRatio.RatioSeparator);
+					}
+				} else {
+					// Increment both values.
+					SetCommonRatio (commonRatio.Numerator - IncrementValue, commonRatio.Denominator - IncrementValue, commonRatio.RatioSeparator);
+				}
+				SetValue (commonRatio.StringValue);
+			} else {
+				SetCommonRatio (commonRatio.Numerator - IncrementValue, 1, commonRatio.RatioSeparator);
+				SetValue (commonRatio.Numerator);
+			}
+
+			// Resposition our cursor so it doesn't jump around.
+			SetEditorCaretLocationAndLength (caretLocation, selectionLength);
+		}
+
+		void SetCommonRatio (double numerator, double denominator, char separator)
+		{
+			commonRatio.Numerator = numerator;
+			commonRatio.Denominator = denominator;
+			commonRatio.RatioSeparator = separator;
+			cachedStepperValue = stepper.DoubleValue;
+		}
+
+		void SetEditorCaretLocationAndLength (nint caretLocation, nint selectionLength)
+		{
+			if (numericEditor.CurrentEditor != null) {
+				numericEditor.CurrentEditor.SelectedRange = new NSRange (caretLocation, selectionLength);
+			}
+		}
+
+		void GetEditorCaretLocationAndLength (out nint caretLocation, out nint selectionLength)
+		{
+			caretLocation = 0;
+			selectionLength = 0;
+			if (numericEditor.CurrentEditor != null) {
+				caretLocation = numericEditor.CurrentEditor.SelectedRange.Location;
+				selectionLength = numericEditor.CurrentEditor.SelectedRange.Length;
+			}
+		}
+
+		int GetSeparatorLocation ()
+		{
+			return string.Compare (numericEditor.StringValue, commonRatio.RatioSeparator.ToString ());
 		}
 	}
 }

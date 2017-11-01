@@ -125,10 +125,10 @@
       <DependentUpon>LocalizationResources.resx</DependentUpon>
     </Compile>
     <Compile Include="ViewModels\RectanglePropertyViewModel.cs" />
+    <Compile Include="ViewModels\RatioViewModel.cs" />
+    <Compile Include="Drawing\CommonRatio.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Controls\" />
-    <Folder Include="Resources\" />
     <Compile Include="Themes\BaseThemeManager.cs" />
     <Compile Include="Themes\PropertyEditorTheme.cs" />
   </ItemGroup>
