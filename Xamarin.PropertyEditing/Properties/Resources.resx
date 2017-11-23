@@ -319,4 +319,7 @@
   <data name="ShowAdvancedProperties" xml:space="preserve">
     <value>Show advanced properties</value>
   </data>
+  <data name="ColorEditorTabLabel" xml:space="preserve">
+    <value>Editor</value>
+  </data>
 </root>
