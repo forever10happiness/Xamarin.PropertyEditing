@@ -62,6 +62,7 @@
     <Compile Include="Drawing\CommonTileBrush.cs" />
     <Compile Include="Drawing\CommonTileMode.cs" />
     <Compile Include="Drawing\CommonImageBrush.cs" />
+    <Compile Include="IAssemblyInfo.cs" />
     <Compile Include="IAvailabilityConstraint.cs" />
     <Compile Include="IClampedPropertyInfo.cs" />
     <Compile Include="IColorSpaced.cs" />
@@ -74,6 +75,7 @@
     <Compile Include="IPropertyInfo.cs" />
     <Compile Include="IResourceProvider.cs" />
     <Compile Include="ISelfConstrainedPropertyInfo.cs" />
+    <Compile Include="ITypeInfo.cs" />
     <Compile Include="MultiAvailabilityConstraint.cs" />
     <Compile Include="NotifyingObject.cs" />
     <Compile Include="ObservableCollectionEx.cs" />
