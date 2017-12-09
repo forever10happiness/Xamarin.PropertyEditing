@@ -18,5 +18,15 @@ namespace Xamarin.PropertyEditing.Windows
 				}
 			}
 		}
+
+		public static T FindAncestor<T> (this DependencyObject control)
+			where T : DependencyObject
+		{
+			DependencyObject current = VisualTreeHelper.GetParent (control);
+			while (current != null && !(current is T)) {
+				current = VisualTreeHelper.GetParent(current);
+			}
+			return current as T;
+		}
 	}
 }
