@@ -17,26 +17,34 @@ namespace Xamarin.PropertyEditing.ViewModels
 
 		public SolidBrushViewModel Solid { get; }
 
-		// TODO: make this its own property view model so we can edit bindings, set to resources, etc.
-		public double Opacity {
-			get => Value == null ? 1.0 : Value.Opacity;
+		public ValueInfo<double> Opacity {
+			get {
+				if (this.opacity != null) return this.opacity;
+				this.opacity = new ValueInfo<double> {
+					Source = ValueSource.Local,
+					Value = Value == null ? 1.0 : Value.Opacity
+				};
+				return this.opacity;
+			}
 			set {
-				if (Value is null) return;
+				this.opacity = value;
+				if (Value is null || value.Source != ValueSource.Local) return;
+				var opacity = value.Value;
 				if (Value is CommonSolidBrush solid) {
-					Value = new CommonSolidBrush (solid.Color, solid.ColorSpace, value);
+					Value = new CommonSolidBrush (solid.Color, solid.ColorSpace, opacity);
 				} else if (Value is CommonImageBrush img) {
 					Value = new CommonImageBrush (
 						img.ImageSource, img.AlignmentX, img.AlignmentY, img.Stretch, img.TileMode,
-						img.ViewBox, img.ViewBoxUnits, img.ViewPort, img.ViewPortUnits, value);
+						img.ViewBox, img.ViewBoxUnits, img.ViewPort, img.ViewPortUnits, opacity);
 				} else if (Value is CommonLinearGradientBrush linear) {
 					Value = new CommonLinearGradientBrush (
 						linear.StartPoint, linear.EndPoint, linear.GradientStops,
-						linear.ColorInterpolationMode, linear.MappingMode, linear.SpreadMethod, value);
+						linear.ColorInterpolationMode, linear.MappingMode, linear.SpreadMethod, opacity);
 				} else if (Value is CommonRadialGradientBrush radial) {
 					Value = new CommonRadialGradientBrush (
 						radial.Center, radial.GradientOrigin, radial.RadiusX, radial.RadiusY,
 						radial.GradientStops, radial.ColorInterpolationMode, radial.MappingMode,
-						radial.SpreadMethod, value);
+						radial.SpreadMethod, opacity);
 				} else {
 					throw new InvalidOperationException ("Value is an unsupported brush type.");
 				}
@@ -49,5 +57,7 @@ namespace Xamarin.PropertyEditing.ViewModels
 			base.UpdateCurrentValue ();
 			OnPropertyChanged (nameof (Opacity));
 		}
+
+		ValueInfo<double> opacity;
 	}
 }

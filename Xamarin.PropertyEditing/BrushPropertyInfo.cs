@@ -4,7 +4,7 @@ using Xamarin.PropertyEditing.Drawing;
 
 namespace Xamarin.PropertyEditing
 {
-	public class BrushPropertyInfo : IPropertyInfo, IColorSpaced
+	public class BrushPropertyInfo : IComplexPropertyInfo, IColorSpaced
 	{
 		public BrushPropertyInfo (string name, string category, bool canWrite,
 			IReadOnlyList<string> colorSpaces = null, ValueSources valueSources = ValueSources.Local | ValueSources.Default,
@@ -24,7 +24,7 @@ namespace Xamarin.PropertyEditing
 
 		public string Name { get; }
 
-		public Type Type => typeof(CommonBrush);
+		public Type Type => typeof (CommonBrush);
 
 		public string Category { get; }
 
@@ -35,5 +35,43 @@ namespace Xamarin.PropertyEditing
 		public IReadOnlyList<PropertyVariation> Variations { get; }
 
 		public IReadOnlyList<IAvailabilityConstraint> AvailabilityConstraints { get; }
+
+		public IReadOnlyCollection<ISubPropertyInfo> Properties =>
+			this.properties ?? (
+			this.properties = new ISubPropertyInfo[] {
+				OpacityInfo
+			});
+
+		public OpacityPropertyInfo OpacityInfo =>
+			this.opacityInfo ?? (
+			this.opacityInfo = new OpacityPropertyInfo (this));
+
+		OpacityPropertyInfo opacityInfo;
+		IReadOnlyCollection<ISubPropertyInfo> properties;
+
+		public class OpacityPropertyInfo : ISubPropertyInfo
+		{
+			public OpacityPropertyInfo (BrushPropertyInfo parent)
+			{
+				ParentProperty = parent;
+			}
+
+			public IComplexPropertyInfo ParentProperty { get; }
+
+			public string Name => "Opacity";
+
+			public Type Type => typeof (double);
+
+			public string Category => null;
+
+			public bool CanWrite => true;
+
+			public ValueSources ValueSources =>
+				ValueSources.Local | ValueSources.Default;
+
+			public IReadOnlyList<PropertyVariation> Variations => null;
+
+			public IReadOnlyList<IAvailabilityConstraint> AvailabilityConstraints => null;
+		}
 	}
 }
