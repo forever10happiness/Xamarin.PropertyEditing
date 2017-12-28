@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Xamarin.PropertyEditing.Drawing;
+using Xamarin.PropertyEditing.ViewModels;
 
 namespace Xamarin.PropertyEditing
 {
@@ -39,14 +40,20 @@ namespace Xamarin.PropertyEditing
 		public IReadOnlyCollection<ISubPropertyInfo> Properties =>
 			this.properties ?? (
 			this.properties = new ISubPropertyInfo[] {
-				OpacityInfo
+				OpacityInfo,
+				ColorSpaceInfo
 			});
 
 		public OpacityPropertyInfo OpacityInfo =>
 			this.opacityInfo ?? (
 			this.opacityInfo = new OpacityPropertyInfo (this));
 
+		public ColorSpacePropertyInfo ColorSpaceInfo =>
+			this.colorSpaceInfo ?? (
+			this.colorSpaceInfo = new ColorSpacePropertyInfo (this));
+
 		OpacityPropertyInfo opacityInfo;
+		ColorSpacePropertyInfo colorSpaceInfo;
 		IReadOnlyCollection<ISubPropertyInfo> properties;
 
 		public class OpacityPropertyInfo : ISubPropertyInfo
@@ -58,9 +65,34 @@ namespace Xamarin.PropertyEditing
 
 			public IComplexPropertyInfo ParentProperty { get; }
 
-			public string Name => "Opacity";
+			public string Name => nameof(BrushPropertyViewModel.Opacity);
 
 			public Type Type => typeof (double);
+
+			public string Category => null;
+
+			public bool CanWrite => true;
+
+			public ValueSources ValueSources =>
+				ValueSources.Local | ValueSources.Default;
+
+			public IReadOnlyList<PropertyVariation> Variations => null;
+
+			public IReadOnlyList<IAvailabilityConstraint> AvailabilityConstraints => null;
+		}
+
+		public class ColorSpacePropertyInfo : ISubPropertyInfo
+		{
+			public ColorSpacePropertyInfo (BrushPropertyInfo parent)
+			{
+				ParentProperty = parent;
+			}
+
+			public IComplexPropertyInfo ParentProperty { get; }
+
+			public string Name => nameof (SolidBrushViewModel.ColorSpace);
+
+			public Type Type => typeof (string);
 
 			public string Category => null;
 

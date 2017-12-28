@@ -18,8 +18,18 @@ namespace Xamarin.PropertyEditing.ViewModels
 
 		public CommonSolidBrush PreviousSolidBrush { get; set; }
 
-		// TODO: make this its own property view model so we can edit bindings, set to resources, etc.
-		public string ColorSpace => Parent.Value is CommonSolidBrush solidBrush ? solidBrush.ColorSpace : null;
+		public ValueInfo<string> ColorSpace
+		{
+			get => this.colorSpace ?? (this.colorSpace = new ValueInfo<string> {
+				Source = ValueSource.Local,
+				Value = Parent.Value is CommonSolidBrush solidBrush ? solidBrush.ColorSpace : null
+			});
+			set {
+				this.colorSpace = value;
+				OnPropertyChanged ();
+				Parent.Value = new CommonSolidBrush (Color, value.Value, Parent.Value.Opacity);
+			}
+		}
 
 		public CommonColor HueColor {
 			get => (this.hueColor ?? (this.hueColor = LastColor.HueColor)).Value;
@@ -30,7 +40,7 @@ namespace Xamarin.PropertyEditing.ViewModels
 					Color = CommonColor.FromHSB (value.Hue, saturation, brightness, Color.A);
 					this.hueColor = value;
 					OnPropertyChanged ();
-					Parent.Value = new CommonSolidBrush (Color, ColorSpace, Parent.Value.Opacity);
+					Parent.Value = new CommonSolidBrush (Color, ColorSpace.Value, Parent.Value.Opacity);
 				}
 			}
 		}
@@ -41,7 +51,7 @@ namespace Xamarin.PropertyEditing.ViewModels
 				if (!this.shade.Equals (value)) {
 					this.shade = value;
 					OnPropertyChanged ();
-					Parent.Value = new CommonSolidBrush (value, ColorSpace, Parent.Value.Opacity);
+					Parent.Value = new CommonSolidBrush (value, ColorSpace.Value, Parent.Value.Opacity);
 				}
 			}
 		}
@@ -53,14 +63,14 @@ namespace Xamarin.PropertyEditing.ViewModels
 				if (!Color.Equals (value)) {
 					CommonColor oldHue = HueColor;
 					CommonColor newHue = value.HueColor;
-					Parent.Value = new CommonSolidBrush (value, ColorSpace, Parent.Value.Opacity);
+					Parent.Value = new CommonSolidBrush (value, ColorSpace.Value, Parent.Value.Opacity);
 					OnPropertyChanged ();
 					if (!newHue.Equals (oldHue)) {
-						hueColor = newHue;
+						this.hueColor = newHue;
 						OnPropertyChanged (nameof (HueColor));
 					}
-					if (!value.Equals (shade)) {
-						shade = value;
+					if (!value.Equals (this.shade)) {
+						this.shade = value;
 						OnPropertyChanged (nameof (Shade));
 					}
 					if (!this.initialColor.HasValue) {
@@ -83,7 +93,7 @@ namespace Xamarin.PropertyEditing.ViewModels
 			OnPropertyChanged (nameof (LastColor));
 			OnPropertyChanged (nameof (Shade));
 			OnPropertyChanged (nameof (HueColor));
-			Parent.Value = new CommonSolidBrush (Color, ColorSpace, opacity);
+			Parent.Value = new CommonSolidBrush (Color, ColorSpace.Value, opacity);
 		}
 
 		public void CommitShade ()
@@ -91,15 +101,17 @@ namespace Xamarin.PropertyEditing.ViewModels
 			this.lastColor = Shade;
 			var opacity = Parent.Value != null ? Parent.Value.Opacity : 1.0;
 			OnPropertyChanged (nameof (LastColor));
-			Parent.Value = new CommonSolidBrush (Shade, ColorSpace, opacity);
+			Parent.Value = new CommonSolidBrush (Shade, ColorSpace.Value, opacity);
 		}
 
-		private BrushPropertyViewModel Parent { get; }
+		BrushPropertyViewModel Parent { get; }
 
-		private CommonColor? hueColor;
-		private CommonColor? shade;
-		private CommonColor? initialColor;
-		private CommonColor? lastColor;
+		CommonColor? hueColor;
+		CommonColor? shade;
+		CommonColor? initialColor;
+		CommonColor? lastColor;
+
+		ValueInfo<string> colorSpace;
 
 		private void Parent_PropertyChanged (object sender, PropertyChangedEventArgs e)
 		{
