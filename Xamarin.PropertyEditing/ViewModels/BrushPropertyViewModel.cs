@@ -17,15 +17,13 @@ namespace Xamarin.PropertyEditing.ViewModels
 
 		public SolidBrushViewModel Solid { get; }
 
-		public ValueInfo<double> Opacity {
-			get {
-				if (this.opacity != null) return this.opacity;
+		public ValueInfo<double> Opacity
+		{
+			get => this.opacity ?? (
 				this.opacity = new ValueInfo<double> {
 					Source = ValueSource.Local,
 					Value = Value == null ? 1.0 : Value.Opacity
-				};
-				return this.opacity;
-			}
+				});
 			set {
 				this.opacity = value;
 				if (Value is null || value.Source != ValueSource.Local) return;

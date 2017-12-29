@@ -41,7 +41,8 @@ namespace Xamarin.PropertyEditing
 			this.properties ?? (
 			this.properties = new ISubPropertyInfo[] {
 				OpacityInfo,
-				ColorSpaceInfo
+				ColorSpaceInfo,
+				ColorInfo
 			});
 
 		public OpacityPropertyInfo OpacityInfo =>
@@ -52,8 +53,13 @@ namespace Xamarin.PropertyEditing
 			this.colorSpaceInfo ?? (
 			this.colorSpaceInfo = new ColorSpacePropertyInfo (this));
 
+		public ColorPropertyInfo ColorInfo =>
+			this.colorInfo ?? (
+			this.colorInfo = new ColorPropertyInfo (this));
+
 		OpacityPropertyInfo opacityInfo;
 		ColorSpacePropertyInfo colorSpaceInfo;
+		ColorPropertyInfo colorInfo;
 		IReadOnlyCollection<ISubPropertyInfo> properties;
 
 		public class OpacityPropertyInfo : ISubPropertyInfo
@@ -100,6 +106,30 @@ namespace Xamarin.PropertyEditing
 
 			public ValueSources ValueSources =>
 				ValueSources.Local | ValueSources.Default;
+
+			public IReadOnlyList<PropertyVariation> Variations => null;
+
+			public IReadOnlyList<IAvailabilityConstraint> AvailabilityConstraints => null;
+		}
+
+		public class ColorPropertyInfo : ISubPropertyInfo
+		{
+			public ColorPropertyInfo(BrushPropertyInfo parent)
+			{
+				ParentProperty = parent;
+			}
+
+			public IComplexPropertyInfo ParentProperty { get; }
+
+			public string Name => nameof(SolidBrushViewModel.Color);
+
+			public Type Type => typeof(CommonColor);
+
+			public string Category => null;
+
+			public bool CanWrite => true;
+
+			public ValueSources ValueSources => ValueSources.Local | ValueSources.Default;
 
 			public IReadOnlyList<PropertyVariation> Variations => null;
 
